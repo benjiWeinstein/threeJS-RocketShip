@@ -1,3 +1,5 @@
+import {OrbitControls} from './OrbitControls.js'
+
 // Scene Declartion
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -9,6 +11,7 @@ const camera = new THREE.PerspectiveCamera(
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
 // helper function for later on
@@ -30,15 +33,53 @@ const texture = loader.load([
 ]);
 scene.background = texture;
 
+// This defines the initial distance of the camera
+const cameraTranslate = new THREE.Matrix4();
+cameraTranslate.makeTranslation(0,0,5);
+camera.applyMatrix4(cameraTranslate)
+
+renderer.render( scene, camera );
+
+
+//Orbit controls
+const controls = new OrbitControls( camera, renderer.domElement );
+let isOrbitEnabled = true;
+const toggle = (e) => {
+	if (e.key == "o"){
+		isOrbitEnabled = !isOrbitEnabled;
+	}
+}
+
+document.addEventListener('keydown',toggle)
+//controls.update() must be called after any manual changes to the camera's transform
+controls.update();
+
 // TODO: Texture Loading
 // We usually do the texture loading before we start everything else, as it might take processing time
+const moonLoader = new THREE.TextureLoader();
+const moonTexture = moonLoader.load("src/textures/moon.jpg")
+
+const earthLoader = new THREE.TextureLoader();
+const earthTexture = earthLoader.load("src/textures/earth.jpg")
+
+
+
 
 // TODO: Add Lighting
+
+const pointlight = new THREE.PointLight(0xffffff, 1.2)
+pointlight.position.set(60, 100, 100)
+scene.add(pointlight)
+const directionLight = new THREE.DirectionalLight(0xffffff, 0.9)
+scene.add(directionLight)
+
+
+
 
 // TODO: Spaceship
 // You should copy-paste the spaceship from the previous exercise here
 function getSpaceShip() {
-  const shipGroup = new THREE.Group();
+  let shipGroup = new THREE.Group();
   shipGroup.name = "Ship";
   let geometry = new THREE.ConeGeometry(5, 15, 32);
   let material = new THREE.MeshPhongMaterial({ color: 0xffff00 });
@@ -168,11 +209,26 @@ function getSpaceShip() {
   shipGroup.add(cone, hull);
   return shipGroup
 }
-const shipGroup = getSpaceShip()
+let shipGroup = getSpaceShip()
+shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-5, 145, -4))
+shipGroup.applyMatrix4(new THREE.Matrix4().makeScale(0.1,0.1,0.1))
 scene.add(shipGroup)
 
 // TODO: Planets
 // You should add both earth and the moon here
+let earthGeometry = new THREE.SphereGeometry(15, 32, 16);
+let earthMaterial = new THREE.MeshPhongMaterial({color:0xffffff, map:earthTexture});
+const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+earth.applyMatrix4(new THREE.Matrix4().makeRotationX(degrees_to_radians(-49)))
+earth.applyMatrix4(new THREE.Matrix4().makeRotationZ(degrees_to_radians(10)))
+scene.add(earth);
+
+
+let moonGeometry = new THREE.SphereGeometry(3.75, 32, 16);
+let moonMaterial = new THREE.MeshPhongMaterial({color:0xffffff, map:moonTexture});
+const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+moon.applyMatrix4(new THREE.Matrix4().makeTranslation(100, 5, 100))
+scene.add(moon);
 
 // TODO: Bezier Curves
 
@@ -192,8 +248,14 @@ const handle_keydown = (e) => {
 };
 document.addEventListener("keydown", handle_keydown);
 
+//controls.update() must be called after any manual changes to the camera's transform
+controls.update();
+
 function animate() {
   requestAnimationFrame(animate);
+
+	controls.enabled = isOrbitEnabled;
+	controls.update();
 
   // TODO: Animation for the spaceship position
 
