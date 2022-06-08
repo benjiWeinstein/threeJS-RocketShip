@@ -1,3 +1,6 @@
+import {OrbitControls} from './OrbitControls.js'
+
+
 // Scene Declartion
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -10,6 +13,18 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+// This defines the initial distance of the camera
+function init_cam(renderer,scene,camera){
+	const cameraTranslate = new THREE.Matrix4();
+	const {x,y,z} = {x: 83.644823004712, y: 94.53865066260205, z: 192.17307542315658}
+	
+	cameraTranslate.makeTranslation(x,y,z);
+	camera.applyMatrix4(cameraTranslate)
+	
+	renderer.render( scene, camera );
+	}
+	init_cam(renderer,scene,camera)
 
 // helper function for later on
 function degrees_to_radians(degrees) {
@@ -37,6 +52,11 @@ scene.background = texture;
 
 // TODO: Spaceship
 // You should copy-paste the spaceship from the previous exercise here
+const controls = new OrbitControls( camera, renderer.domElement );
+controls.update();
+controls.enabled = true;
+
+
 function getSpaceShip() {
   const shipGroup = new THREE.Group();
   shipGroup.name = "Ship";
@@ -194,6 +214,9 @@ document.addEventListener("keydown", handle_keydown);
 
 function animate() {
   requestAnimationFrame(animate);
+
+	controls.update();
+
 
   // TODO: Animation for the spaceship position
 
