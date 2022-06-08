@@ -48,6 +48,9 @@ const toggle = (e) => {
 	if (e.key == "o"){
 		isOrbitEnabled = !isOrbitEnabled;
 	}
+  else if (e.key == "c"){
+		console.log(camera.w)
+	}
 }
 
 document.addEventListener('keydown',toggle)
