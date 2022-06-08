@@ -309,7 +309,10 @@ const handle_keydown = (e) => {
 		console.log('Earth',earth.position)
 		console.log('Ship',shipGroup.position)
 		console.log('moon',moon.position)
-		console.log('bezier 50%',curve.getPoint(0.5))
+		console.log('bezier 50%',curve1.getPoint(0.5))
+		console.log('bezier 50%',curve1.getPoint(0.01))
+    
+
 
     
 	}
@@ -317,6 +320,7 @@ const handle_keydown = (e) => {
 document.addEventListener("keydown", handle_keydown);
 
 //controls.update() must be called after any manual changes to the camera's transform
+let frame = 0
 controls.update();
 
 function animate() {
@@ -324,6 +328,11 @@ function animate() {
 
 	controls.enabled = isOrbitEnabled;
 	controls.update();
+  frame = frame + 0.001
+  shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-shipGroup.position.x,-shipGroup.position.y,-shipGroup.position.z))
+  shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve1.getPoint(frame).x,curve1.getPoint(frame).y,curve1.getPoint(frame).z))
+  // shipGroup.position = curve1.getPoint(frame)
+
 
   // TODO: Animation for the spaceship position
 
