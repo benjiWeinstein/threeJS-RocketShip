@@ -287,13 +287,23 @@ const line3 = res.line
 const curve3 = res.curve
 scene.add(line3)
 
+
 var curveIndx = 1;
 var framerate = 0.0005
 const maxFrame = 0.001
 const minFrame = 0.0001
 
+// Plane in order to keep ship in line when switching lanes
+//const lineToMoon = new THREE.Line3((0,0,0), (100,5,100))
+//scene.add(lineToMoon)
+//const plane = new THREE.Plane((20, 1, 20))
+//scene.add(plane)
 
-
+const planeGeometry = new THREE.PlaneGeometry(600, 600)
+const planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff})
+const plane = new THREE.Mesh(planeGeometry, planeMaterial)
+plane.applyMatrix(new THREE.Matrix4().makeRotationY(degrees_to_radians(45)))
+scene.add(plane)
 
 
 
@@ -301,6 +311,48 @@ const minFrame = 0.0001
 // Set the camera following the spaceship here
 
 // TODO: Add collectible stars
+const starGeometry = new THREE.SphereGeometry(0.5, 32, 16)
+const goodStarMaterial = new THREE.MeshPhongMaterial({color: 0x08ff00})
+const badStarMaterial = new THREE.MeshPhongMaterial({color: 0xff0000})
+
+const star1 = new THREE.Mesh(starGeometry, goodStarMaterial)
+star1.applyMatrix(new THREE.Matrix4().makeTranslation(curve1.getPoint(0.2).x, curve1.getPoint(0.2).y, curve1.getPoint(0.2).z))
+scene.add(star1);
+
+
+const star2 = new THREE.Mesh(starGeometry, badStarMaterial)
+star2.applyMatrix(new THREE.Matrix4().makeTranslation(curve1.getPoint(0.25).x, curve1.getPoint(0.25).y, curve1.getPoint(0.25).z))
+scene.add(star2);
+
+const star3 = new THREE.Mesh(starGeometry, goodStarMaterial)
+star3.applyMatrix(new THREE.Matrix4().makeTranslation(curve3.getPoint(0.35).x, curve3.getPoint(0.35).y, curve3.getPoint(0.35).z))
+scene.add(star3);
+
+const star4 = new THREE.Mesh(starGeometry, goodStarMaterial)
+star4.applyMatrix(new THREE.Matrix4().makeTranslation(curve2.getPoint(0.513).x, curve2.getPoint(0.513).y, curve2.getPoint(0.513).z))
+scene.add(star4);
+
+const star5 = new THREE.Mesh(starGeometry, goodStarMaterial)
+star5.applyMatrix(new THREE.Matrix4().makeTranslation(curve1.getPoint(0.42).x, curve1.getPoint(0.42).y, curve1.getPoint(0.42).z))
+scene.add(star5);
+
+const star6 = new THREE.Mesh(starGeometry, badStarMaterial)
+star6.applyMatrix(new THREE.Matrix4().makeTranslation(curve1.getPoint(0.45).x, curve1.getPoint(0.45).y, curve1.getPoint(0.45).z))
+scene.add(star6);
+
+const star7 = new THREE.Mesh(starGeometry, goodStarMaterial)
+star7.applyMatrix(new THREE.Matrix4().makeTranslation(curve3.getPoint(0.48).x, curve3.getPoint(0.48).y, curve3.getPoint(0.48).z))
+scene.add(star7);
+
+const star8 = new THREE.Mesh(starGeometry, badStarMaterial)
+star8.applyMatrix(new THREE.Matrix4().makeTranslation(curve3.getPoint(0.415).x, curve3.getPoint(0.415).y, curve3.getPoint(0.415).z))
+scene.add(star8);
+
+const star9 = new THREE.Mesh(starGeometry, goodStarMaterial)
+star9.applyMatrix(new THREE.Matrix4().makeTranslation(curve1.getPoint(0.9).x, curve1.getPoint(0.9).y, curve1.getPoint(0.9).z))
+scene.add(star9);
+
+const stars = [star1, star2, star3, star4, star5, star6, star7, star8, star9]
 
 // TODO: Add keyboard event
 // We wrote some of the function for you
@@ -360,6 +412,7 @@ document.addEventListener("keydown", handle_keydown);
 
 //controls.update() must be called after any manual changes to the camera's transform
 let frame = 0
+let intersection;
 controls.update();
 
 function animate() {
@@ -370,16 +423,31 @@ function animate() {
   frame = frame + framerate
   shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-shipGroup.position.x,-shipGroup.position.y,-shipGroup.position.z))
 
-  if (LEFT_CURVE) shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve3.getPoint(frame).x,curve3.getPoint(frame).y,curve3.getPoint(frame).z))
-  if (MID_CURVE) shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve2.getPoint(frame).x,curve2.getPoint(frame).y,curve2.getPoint(frame).z))
-  if (RIGHT_CURVE) shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve1.getPoint(frame).x,curve1.getPoint(frame).y,curve1.getPoint(frame).z))
-
-  // shipGroup.position = curve1.getPoint(frame)
-
-
+  plane.applyMatrix4(new THREE.Matrix4().makeTranslation(-plane.position.x,-plane.position.y,-plane.position.z))
+  plane.applyMatrix4(new THREE.Matrix4().makeTranslation(curve2.getPoint(frame).x,curve2.getPoint(frame).y,curve2.getPoint(frame).z))
+  
   // TODO: Animation for the spaceship position
+  if (LEFT_CURVE) {
+    //plane.intersectLine(curve3, intersection);
+    shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve3.getPoint(frame).x,curve3.getPoint(frame).y,curve3.getPoint(frame).z))
+  }
+  if (MID_CURVE) {
+    shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve2.getPoint(frame).x,curve2.getPoint(frame).y,curve2.getPoint(frame).z))
+  }
+  if (RIGHT_CURVE) {
+    shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve1.getPoint(frame).x,curve1.getPoint(frame).y,curve1.getPoint(frame).z))
+  }
+
+  
+
 
   // TODO: Test for star-spaceship collision
+  for (const element of stars) {
+  if ((element.position.x <= shipGroup.position.x + 0.1) && (element.position.x >= shipGroup.position.x - 0.1)) 
+    if ((element.position.z <= shipGroup.position.z + 0.1) && (element.position.z >= shipGroup.position.z - 0.1))
+      element.visible = false;
+      // TODO: Create counter for score of each score collected
+  }
 
   renderer.render(scene, camera);
 }
