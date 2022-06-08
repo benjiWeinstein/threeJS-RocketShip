@@ -35,7 +35,8 @@ scene.background = texture;
 
 // This defines the initial distance of the camera
 const cameraTranslate = new THREE.Matrix4();
-cameraTranslate.makeTranslation(0,0,5);
+const {x,y,z} = {x: -29.496135114851047, y: 24.866340374947658, z: -28.166739254418264}
+cameraTranslate.makeTranslation(x,y,z);
 camera.applyMatrix4(cameraTranslate)
 
 renderer.render( scene, camera );
@@ -44,16 +45,12 @@ renderer.render( scene, camera );
 //Orbit controls
 const controls = new OrbitControls( camera, renderer.domElement );
 let isOrbitEnabled = true;
-const toggle = (e) => {
-	if (e.key == "o"){
-		isOrbitEnabled = !isOrbitEnabled;
-	}
-  else if (e.key == "c"){
-		console.log(camera.w)
-	}
-}
+// const toggle = (e) => {
 
-document.addEventListener('keydown',toggle)
+  
+// }
+
+// document.addEventListener('keydown',toggle)
 //controls.update() must be called after any manual changes to the camera's transform
 controls.update();
 
@@ -65,9 +62,6 @@ const moonTexture = moonLoader.load("src/textures/moon.jpg")
 const earthLoader = new THREE.TextureLoader();
 const earthTexture = earthLoader.load("src/textures/earth.jpg")
 
-
-
-
 // TODO: Add Lighting
 
 const pointlight = new THREE.PointLight(0xffffff, 1.2)
@@ -76,6 +70,15 @@ scene.add(pointlight)
 const directionLight = new THREE.DirectionalLight(0xffffff, 0.9)
 scene.add(directionLight)
 
+const spotLight = new THREE.SpotLight(0xffffff)
+spotLight.position.set( 100, 1000, 100 );
+spotLight.castShadow = true;
+spotLight.shadow.mapSize.width = 1024;
+spotLight.shadow.mapSize.height = 1024;
+spotLight.shadow.camera.near = 500;
+spotLight.shadow.camera.far = 4000;
+spotLight.shadow.camera.fov = 30;
+scene.add( spotLight );
 
 
 
@@ -233,7 +236,57 @@ const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 moon.applyMatrix4(new THREE.Matrix4().makeTranslation(100, 5, 100))
 scene.add(moon);
 
+
+//helpers
+let gridHelper, axesHelper, lightHelper;
+function addHelpers() {
+	gridHelper = new THREE.GridHelper(200,50)
+	axesHelper = new THREE.AxesHelper( 100 );
+	lightHelper = new THREE.PointLightHelper(pointlight)
+	scene.add( axesHelper,gridHelper,lightHelper );
+}
+addHelpers()
+function removeHelpers() {
+	scene.remove( axesHelper,gridHelper,lightHelper );
+}
+
+
 // TODO: Bezier Curves
+function createCurve(x,y,z){
+  const curve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3( shipGroup.position.x, shipGroup.position.y, shipGroup.position.z ),
+    new THREE.Vector3( x, y, z ),
+    new THREE.Vector3( moon.position.x, moon.position.y, moon.position.z )
+  );
+  const points = curve.getPoints( 50 );
+  const geometry = new THREE.BufferGeometry().setFromPoints( points );
+  
+  const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+  
+  // Create the final object to add to the scene
+  const curveObject = new THREE.Line( geometry, material );
+  const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffff });
+  const line = new THREE.Line(lineGeo, lineMat);
+  return {line, curve}
+}
+let res = createCurve(0,5,40)
+const line1 = res.line 
+const curve1 = res.curve
+scene.add(line1)
+res = createCurve(50,0,50)
+const line2 = res.line 
+const curve2 = res.curve
+scene.add(line2)
+res = createCurve(90,-20,50)
+const line3 = res.line 
+const curve3 = res.curve
+scene.add(line3)
+
+
+
+
+
 
 // TODO: Camera Settings
 // Set the camera following the spaceship here
@@ -248,6 +301,18 @@ const handle_keydown = (e) => {
   } else if (e.code == "ArrowRight") {
     // TODO
   }
+  else if (e.key == "o"){
+		isOrbitEnabled = !isOrbitEnabled;
+	}
+  else if (e.key == "c"){
+		console.log('Camera',camera.position)
+		console.log('Earth',earth.position)
+		console.log('Ship',shipGroup.position)
+		console.log('moon',moon.position)
+		console.log('bezier 50%',curve.getPoint(0.5))
+
+    
+	}
 };
 document.addEventListener("keydown", handle_keydown);
 
