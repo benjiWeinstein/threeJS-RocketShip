@@ -14,6 +14,10 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
+let LEFT_CURVE = false;
+let MID_CURVE = true;
+let RIGHT_CURVE = false;
+
 // helper function for later on
 function degrees_to_radians(degrees) {
   var pi = Math.PI;
@@ -283,6 +287,11 @@ const line3 = res.line
 const curve3 = res.curve
 scene.add(line3)
 
+var curveIndx = 1;
+var framerate = 0.0005
+const maxFrame = 0.001
+const minFrame = 0.0001
+
 
 
 
@@ -298,10 +307,40 @@ scene.add(line3)
 const handle_keydown = (e) => {
   if (e.code == "ArrowLeft") {
     // TODO
+    if (curveIndx > 0) {
+      curveIndx = curveIndx - 1;
+      if (curveIndx == 0) {
+        MID_CURVE = false;
+        LEFT_CURVE = true;
+      }
+      else {
+        RIGHT_CURVE = false;
+        MID_CURVE = true;
+      }
+    }
+
   } else if (e.code == "ArrowRight") {
     // TODO
-  }
-  else if (e.key == "o"){
+    if (curveIndx < 2) {
+      curveIndx = curveIndx + 1;
+      if (curveIndx == 2) {
+        MID_CURVE = false;
+        RIGHT_CURVE = true;
+      }
+      else {
+        LEFT_CURVE = false;
+        MID_CURVE = true;
+      }
+    }
+  } else if (e.code == "ArrowUp") {
+      if (framerate <= maxFrame) {
+        framerate = framerate + 0.0001
+      }
+  } else if (e.code == "ArrowDown") {
+      if (framerate >= minFrame) {
+        framerate = framerate - 0.0001
+      }
+  } else if (e.key == "o"){
 		isOrbitEnabled = !isOrbitEnabled;
 	}
   else if (e.key == "c"){
@@ -328,9 +367,13 @@ function animate() {
 
 	controls.enabled = isOrbitEnabled;
 	controls.update();
-  frame = frame + 0.001
+  frame = frame + framerate
   shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(-shipGroup.position.x,-shipGroup.position.y,-shipGroup.position.z))
-  shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve1.getPoint(frame).x,curve1.getPoint(frame).y,curve1.getPoint(frame).z))
+
+  if (LEFT_CURVE) shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve3.getPoint(frame).x,curve3.getPoint(frame).y,curve3.getPoint(frame).z))
+  if (MID_CURVE) shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve2.getPoint(frame).x,curve2.getPoint(frame).y,curve2.getPoint(frame).z))
+  if (RIGHT_CURVE) shipGroup.applyMatrix4(new THREE.Matrix4().makeTranslation(curve1.getPoint(frame).x,curve1.getPoint(frame).y,curve1.getPoint(frame).z))
+
   // shipGroup.position = curve1.getPoint(frame)
 
 
