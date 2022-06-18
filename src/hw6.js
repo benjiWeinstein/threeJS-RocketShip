@@ -71,10 +71,10 @@ controls.update();
 // TODO: Texture Loading
 // We usually do the texture loading before we start everything else, as it might take processing time
 const moonLoader = new THREE.TextureLoader();
-const moonTexture = moonLoader.load("src/textures/moon.jpg");
+const moonTexture = moonLoader.load("src/textures/earth.jpg");
 
 const earthLoader = new THREE.TextureLoader();
-const earthTexture = earthLoader.load("src/textures/earth.jpg");
+const earthTexture = earthLoader.load("src/textures/moon.jpg");
 
 // TODO: Add Lighting
 const pointlight = new THREE.PointLight(0xffffff, 1.2);
@@ -265,6 +265,7 @@ function removeHelpers() {
   scene.remove(axesHelper, gridHelper, lightHelper);
 }
 
+
 // TODO: Bezier Curves
 function createCurve(x, y, z) {
   const curve = new THREE.QuadraticBezierCurve3(
@@ -312,11 +313,6 @@ const minFrame = 0.0001;
 //const plane = new THREE.Plane((20, 1, 20))
 //scene.add(plane)
 
-const planeGeometry = new THREE.PlaneGeometry(600, 600);
-const planeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-plane.applyMatrix4(new THREE.Matrix4().makeRotationY(degrees_to_radians(45)));
-scene.add(plane);
 
 // TODO: Camera Settings
 // Set the camera following the spaceship here
@@ -482,6 +478,8 @@ const handle_keydown = (e) => {
 document.addEventListener("keydown", handle_keydown);
 
 //controls.update() must be called after any manual changes to the camera's transform
+
+
 let frame = 0;
 let id;
 controls.update();
@@ -502,21 +500,6 @@ function animate() {
     )
   );
 
-  plane.applyMatrix4(
-    new THREE.Matrix4().makeTranslation(
-      -plane.position.x,
-      -plane.position.y,
-      -plane.position.z
-    )
-  );
-  plane.applyMatrix4(
-    new THREE.Matrix4().makeTranslation(
-      curve2.getPoint(frame).x,
-      curve2.getPoint(frame).y,
-      curve2.getPoint(frame).z
-    )
-  );
-
   // TODO: Animation for the spaceship position
   if (LEFT_CURVE) {
     //plane.intersectLine(curve3, intersection);
@@ -527,6 +510,16 @@ function animate() {
         curve3.getPointAt(frame).z
       )
     );
+
+    camera.applyMatrix4(
+      new THREE.Matrix4().makeTranslation(
+        (moon.position.x - shipGroup.position.x)*framerate,
+        0,
+        (moon.position.z - shipGroup.position.z)*framerate
+    ))
+
+    camera.lookAt(shipGroup.position.x, shipGroup.position.y, shipGroup.position.z);
+
   }
   if (MID_CURVE) {
     shipGroup.applyMatrix4(
@@ -536,6 +529,16 @@ function animate() {
         curve2.getPointAt(frame).z
       )
     );
+    
+    camera.applyMatrix4(
+      new THREE.Matrix4().makeTranslation(
+        (moon.position.x - shipGroup.position.x)*framerate,
+        0,
+        (moon.position.z - shipGroup.position.z)*framerate
+    ))
+
+    camera.lookAt(shipGroup.position.x, shipGroup.position.y, shipGroup.position.z);
+
   }
   if (RIGHT_CURVE) {
     shipGroup.applyMatrix4(
@@ -545,6 +548,15 @@ function animate() {
         curve1.getPointAt(frame).z
       )
     );
+
+    camera.applyMatrix4(
+      new THREE.Matrix4().makeTranslation(
+        (moon.position.x - shipGroup.position.x)*framerate,
+        0,
+        (moon.position.z - shipGroup.position.z)*framerate
+    ))
+
+    camera.lookAt(shipGroup.position.x, shipGroup.position.y, shipGroup.position.z);
   }
 
   // TODO: Test for star-spaceship collision
@@ -557,7 +569,8 @@ function animate() {
         element.visible = false;
         // TODO: Create counter for score of each score collected
                 // name of material is eoth 1 or -1 depending on good or bad star
-        POINTS += element.material.name;
+        //if (element.material.name == 1)
+          //POINTS += element.material.name;
     }
   }
 
@@ -567,6 +580,12 @@ function animate() {
     Math.abs(moon.position.z - shipGroup.position.z) <= 0.25
   ) {
     cancelAnimationFrame(id)
+
+    for (const element of stars) {
+      if (!element.visible)
+        POINTS += element.material.name;
+    }
+
     let finishDialog = document.createElement("dialog");
     document.body.appendChild(finishDialog)
     text = document.createTextNode(`MAZEL TOV! YOU MADE IT WITH ${POINTS} POITNS!! Refresh to try again!`);
