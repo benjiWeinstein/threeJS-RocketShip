@@ -1,5 +1,10 @@
 import { OrbitControls } from "./OrbitControls.js";
 
+let LEFT_CURVE = false;
+let MID_CURVE = true;
+let RIGHT_CURVE = false;
+let POINTS = 0;
+
 // Scene Declartion
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -11,14 +16,14 @@ const camera = new THREE.PerspectiveCamera(
 
 let myDialog = document.createElement("dialog");
 document.body.appendChild(myDialog)
-let text = document.createTextNode("WELCOME TO THE GAME");
+let text = document.createTextNode("WELCOME TO THE GAME!! \n \n Try get as many points as you can! (click to start)");
 myDialog.addEventListener('click', () => {
   myDialog.close()
   animate()
 })
 myDialog.appendChild(text);
+myDialog.showModal()
 
-myDialog.showModal();
 
 
 const renderer = new THREE.WebGLRenderer();
@@ -26,10 +31,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
-let LEFT_CURVE = false;
-let MID_CURVE = true;
-let RIGHT_CURVE = false;
-let POINTS = 0;
 
 // helper function for later on
 function degrees_to_radians(degrees) {
@@ -566,7 +567,12 @@ function animate() {
     Math.abs(moon.position.z - shipGroup.position.z) <= 0.25
   ) {
     cancelAnimationFrame(id)
-    alert(`Well done, you made it with ${POINTS} points`)
+    let finishDialog = document.createElement("dialog");
+    document.body.appendChild(finishDialog)
+    text = document.createTextNode(`MAZEL TOV! YOU MADE IT WITH ${POINTS} POITNS!! Refresh to try again!`);
+    finishDialog.appendChild(text);
+    finishDialog.showModal();
+
 
   }
 
